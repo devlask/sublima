@@ -98,23 +98,32 @@ await Transacao.create({
 
 
 
+// controllers/vendaController.js
 exports.listarVendas = async (req, res) => {
   try {
     const vendas = await Venda.findAll({
-      include: [{
-        model: VendaItem,
-        as: 'itens',
-        
-        include: [{ model: Estoque, as: 'produto' }] // ✅ Aqui carrega os nomes
-      }],
+      include: [
+        {
+          model: VendaItem,
+          as: 'itens',
+          include: [{
+            model: Estoque,
+            as: 'produto',
+            attributes: ['id', 'nome', 'valor', 'quantidade']
+          }]
+        }
+      ],
+      attributes: ['id', 'total', 'obs', 'cliente', 'telefone', 'created_at', 'caixa_id'], // 👈 adicione isso
       order: [['created_at', 'DESC']]
     });
+
     res.json(vendas);
-  } catch (err) {
-    console.error('Erro ao buscar vendas:', err);
-    res.status(500).json({ error: 'Erro ao buscar vendas' });
+  } catch (error) {
+    console.error("Erro ao listar vendas:", error);
+    res.status(500).json({ error: "Erro ao buscar vendas" });
   }
 };
+
 
 
 exports.excluirVenda = async (req, res) => {

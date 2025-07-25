@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { CheckCircle, Trash2, ShoppingCart } from 'lucide-react';
 
 export default function TelaPDVVenda() {
   const [produtos, setProdutos] = useState([]);
@@ -17,7 +18,6 @@ export default function TelaPDVVenda() {
   const [observacao, setObservacao] = useState('');
 
   const navigate = useNavigate();
-
   const caixaSelecionado = JSON.parse(localStorage.getItem('caixaSelecionado'));
 
   useEffect(() => {
@@ -27,26 +27,15 @@ export default function TelaPDVVenda() {
   }, []);
 
   const adicionarProduto = (produto) => {
-  const valorNumerico = Number(produto.valor);
-  if (isNaN(valorNumerico)) {
-    console.error(`Valor inválido para o produto "${produto.nome}":`, produto.valor);
-    return;
-  }
-
-  setCarrinho(prev => {
-    const existente = prev.find(item => item.id === produto.id);
-    if (existente) {
-      return prev.map(item =>
-        item.id === produto.id
-          ? { ...item, quantidade: item.quantidade + 1 }
-          : item
-      );
-    } else {
-      return [...prev, { ...produto, quantidade: 1, valor: valorNumerico }];
-    }
-  });
-};
-
+    const valorNumerico = Number(produto.valor);
+    if (isNaN(valorNumerico)) return;
+    setCarrinho(prev => {
+      const existente = prev.find(item => item.id === produto.id);
+      return existente
+        ? prev.map(item => item.id === produto.id ? { ...item, quantidade: item.quantidade + 1 } : item)
+        : [...prev, { ...produto, quantidade: 1, valor: valorNumerico }];
+    });
+  };
 
   const removerProduto = (id) => {
     setCarrinho(prev => prev.filter(item => item.id !== id));
@@ -58,66 +47,60 @@ export default function TelaPDVVenda() {
     ));
   };
 
-const total = carrinho.reduce((acc, item) => acc + item.valor * item.quantidade, 0);
+  const total = carrinho.reduce((acc, item) => acc + item.valor * item.quantidade, 0);
   const troco = pagamento.recebido - total;
 
-  const finalizarVenda = () => {
-    setModalPagamento(true);
+  const finalizarVenda = () => setModalPagamento(true);
+
+  const confirmarVenda = () => {
+    if (!cliente.trim() || !telefone.trim()) {
+      alert('Preencha os campos de cliente e telefone.');
+      return;
+    }
+
+    const valorFinal = revenda ? totalManual : total;
+    const valorRestante = valorFinal - (pagamento.recebido || 0);
+    const statusPagamento = pagamento.recebido >= valorFinal ? 'pago' : 'parcial';
+
+    axios.post('http://localhost:5000/api/vendas', {
+      caixa_id: caixaSelecionado.id,
+      itens: carrinho,
+      total: valorFinal,
+      valor_recebido: pagamento.recebido,
+      valor_restante: valorRestante > 0 ? valorRestante : 0,
+      metodo_pagamento: pagamento.metodo,
+      status_pagamento: statusPagamento,
+      cliente,
+      telefone,
+      data_entrega: dataEntrega,
+      observacao
+    })
+      .then(() => {
+        setModalPagamento(false);
+        setCarrinho([]);
+        setCliente('');
+        setTelefone('');
+        setDataEntrega('');
+        setRevenda(false);
+        setTotalManual(0);
+        setObservacao('');
+        setPagamento({ metodo: '', recebido: 0 });
+        setVendaFinalizada(true);
+      })
+      .catch(err => {
+        console.error('Erro ao registrar venda:', err);
+        alert('Erro ao registrar venda.');
+      });
   };
-
-const confirmarVenda = () => {
-  if (!cliente.trim() || !telefone.trim()) {
-    alert('Preencha os campos de cliente e telefone.');
-    return;
-  }
-
-  const valorFinal = revenda ? totalManual : total;
-  const valorRestante = valorFinal - (pagamento.recebido || 0);
-  const statusPagamento = pagamento.recebido >= valorFinal ? 'pago' : 'parcial';
-
-  axios.post('http://localhost:5000/api/vendas', {
-    caixa_id: caixaSelecionado.id,
-    itens: carrinho,
-    total: valorFinal,
-    valor_recebido: pagamento.recebido,
-    valor_restante: valorRestante > 0 ? valorRestante : 0,
-    metodo_pagamento: pagamento.metodo,
-    status_pagamento: statusPagamento,
-    cliente,
-    telefone,
-    data_entrega: dataEntrega,
-    observacao // ✅ incluído
-  })
-  .then(res => {
-    console.log('Venda registrada com sucesso!');
-    setModalPagamento(false);
-    setCarrinho([]);
-    setCliente('');
-    setTelefone('');
-    setDataEntrega('');
-    setRevenda(false);
-    setTotalManual(0);
-    setObservacao('');
-    setPagamento({ metodo: '', recebido: 0 });
-    setVendaFinalizada(true); // 👈 para mostrar a tela de sucesso
-  })
-  .catch(err => {
-    console.error('Erro ao registrar venda:', err.response?.data || err.message);
-    alert('Erro ao registrar venda. Verifique os dados e tente novamente.');
-  });
-};
-
-
-
-
 
   if (vendaFinalizada) {
     return (
       <div className="p-6 text-center">
+        <CheckCircle className="mx-auto text-green-600 w-16 h-16 mb-4" />
         <h2 className="text-2xl font-bold text-green-600 mb-4">Venda Concluída com Sucesso!</h2>
         <div className="flex gap-4 justify-center">
-          <button onClick={() => window.location.reload()} className="bg-blue-500 text-white px-4 py-2 rounded">Nova Venda</button>
-          <button className="bg-gray-500 text-white px-4 py-2 rounded">Imprimir Cupom</button>
+          <button onClick={() => window.location.reload()} className="bg-blue-600 text-white px-4 py-2 rounded">Nova Venda</button>
+          <button className="bg-gray-600 text-white px-4 py-2 rounded">Imprimir Cupom</button>
           <button className="bg-yellow-600 text-white px-4 py-2 rounded">Emitir Nota Fiscal</button>
         </div>
       </div>
@@ -140,7 +123,7 @@ const confirmarVenda = () => {
           <div className="grid grid-cols-3 gap-2">
             {produtos.filter(p => p.nome.toLowerCase().includes(busca.toLowerCase())).map(produto => (
               <div key={produto.id} onClick={() => adicionarProduto(produto)} className="p-2 border rounded shadow hover:bg-purple-100 cursor-pointer">
-                <p className="font-medium">{produto.nome}</p>
+                <p className="font-medium truncate">{produto.nome}</p>
                 <p className="text-sm">R$ {Number(produto.valor).toFixed(2)}</p>
               </div>
             ))}
@@ -148,7 +131,7 @@ const confirmarVenda = () => {
         </div>
 
         <div className="w-1/3">
-          <h3 className="text-lg font-bold mb-2">Carrinho</h3>
+          <h3 className="text-lg font-bold mb-2">Carrinho <ShoppingCart className="inline ml-2 w-5 h-5 text-gray-600" /></h3>
           {carrinho.map(item => (
             <div key={item.id} className="flex justify-between items-center mb-2">
               <div>
@@ -160,144 +143,52 @@ const confirmarVenda = () => {
                   className="w-16 border px-1"
                 />
               </div>
-              <div>
+              <div className="text-right">
                 <p>R$ {(item.valor * item.quantidade).toFixed(2)}</p>
-                <button onClick={() => removerProduto(item.id)} className="text-red-500 text-sm">Remover</button>
+                <button onClick={() => removerProduto(item.id)} className="text-red-500 text-sm flex items-center gap-1"><Trash2 className="w-4 h-4" />Remover</button>
               </div>
             </div>
           ))}
-          <div className="mt-4 font-bold text-lg">Total: R$ {total.toFixed(2)}</div>
+
+          <div className="mt-4 font-bold text-lg text-right">Total: R$ {total.toFixed(2)}</div>
           <button
             onClick={finalizarVenda}
-            className="mt-4 w-full bg-green-600 text-white py-2 rounded"
+            className="mt-4 w-full bg-green-600 text-white py-2 rounded disabled:opacity-50"
             disabled={carrinho.length === 0}
           >Finalizar Venda</button>
         </div>
       </div>
 
-    {modalPagamento && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white p-6 rounded shadow-lg w-96">
-      <h2 className="text-lg font-bold mb-4">Finalizar Pagamento</h2>
-
-      <label className="block mb-2">
-        Cliente:
-        <input
-          type="text"
-          className="w-full border p-2 rounded"
-          value={cliente}
-          onChange={e => setCliente(e.target.value)}
-          placeholder="Cliente"
-        />
-      </label>
-
-      <label className="block mb-2">
-        Telefone:
-        <input
-          type="text"
-          className="w-full border p-2 rounded"
-          value={telefone}
-          onChange={e => setTelefone(e.target.value)}
-          placeholder="Telefone"
-        />
-      </label>
-
-      <label className="block mb-2">
-        Data de Entrega:
-        <input
-          type="date"
-          className="w-full border p-2 rounded"
-          value={dataEntrega}
-          onChange={e => setDataEntrega(e.target.value)}
-        />
-      </label>
-
-      {/* Revenda Checkbox */}
-      <label className="flex items-center mb-2">
-        <input
-          type="checkbox"
-          className="mr-2"
-          checked={revenda}
-          onChange={e => setRevenda(e.target.checked)}
-        />
-        É para revenda?
-      </label>
-
-      {/* Valor manual se for revenda */}
-      {revenda && (
-        <label className="block mb-2">
-          Valor Total Manual:
-          <input
-            type="number"
-            className="w-full border p-2 rounded"
-            value={totalManual}
-            onChange={e => setTotalManual(parseFloat(e.target.value) || 0)}
-            placeholder="Digite o valor total"
-          />
-        </label>
+      {modalPagamento && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-xl w-96 space-y-4">
+            <h2 className="text-lg font-bold">Finalizar Pagamento</h2>
+            <input placeholder="Cliente" className="w-full border p-2 rounded" value={cliente} onChange={e => setCliente(e.target.value)} />
+            <input placeholder="Telefone" className="w-full border p-2 rounded" value={telefone} onChange={e => setTelefone(e.target.value)} />
+            <input type="date" className="w-full border p-2 rounded" value={dataEntrega} onChange={e => setDataEntrega(e.target.value)} />
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={revenda} onChange={e => setRevenda(e.target.checked)} /> É para revenda?
+            </label>
+            {revenda && (
+              <input type="number" className="w-full border p-2 rounded" value={totalManual} onChange={e => setTotalManual(parseFloat(e.target.value) || 0)} placeholder="Valor manual" />
+            )}
+            <select className="w-full border p-2 rounded" value={pagamento.metodo} onChange={e => setPagamento({ ...pagamento, metodo: e.target.value })}>
+              <option value="">Forma de Pagamento</option>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="cartao">Cartão</option>
+              <option value="pix">Pix</option>
+            </select>
+            <input type="number" className="w-full border p-2 rounded" value={pagamento.recebido} onChange={e => setPagamento({ ...pagamento, recebido: parseFloat(e.target.value) || 0 })} placeholder="Valor recebido" />
+            <textarea className="w-full border p-2 rounded" value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Observações..." />
+            <div>Total: R$ {(revenda ? totalManual : total).toFixed(2)}</div>
+            <div>Restante: R$ {((revenda ? totalManual : total) - (pagamento.recebido || 0)).toFixed(2)}</div>
+            <div className="flex justify-between">
+              <button className="bg-gray-400 text-white px-4 py-2 rounded" onClick={() => setModalPagamento(false)}>Cancelar</button>
+              <button className="bg-green-600 text-white px-4 py-2 rounded" onClick={confirmarVenda}>Confirmar</button>
+            </div>
+          </div>
+        </div>
       )}
-
-      <label className="block mb-2">
-        Forma de Pagamento:
-        <select
-          className="w-full border p-2 rounded"
-          value={pagamento.metodo}
-          onChange={e => setPagamento({ ...pagamento, metodo: e.target.value })}
-        >
-          <option value="">Selecione</option>
-          <option value="dinheiro">Dinheiro</option>
-          <option value="cartao">Cartão</option>
-          <option value="pix">Pix</option>
-        </select>
-      </label>
-
-      <label className="block mb-2">
-        Valor Pago:
-        <input
-          type="number"
-          className="w-full border p-2 rounded"
-          value={pagamento.recebido}
-          onChange={e => setPagamento({ ...pagamento, recebido: parseFloat(e.target.value) || 0 })}
-        />
-      </label>
-
-      {/* Observações */}
-      <label className="block mb-4">
-        Observações:
-        <textarea
-          className="w-full border p-2 rounded"
-          value={observacao}
-          onChange={e => setObservacao(e.target.value)}
-          placeholder="Digite observações adicionais..."
-        />
-      </label>
-
-      {/* Total e restante */}
-      <div className="mb-2">
-        Total: R$ {(revenda ? totalManual : total).toFixed(2)}
-      </div>
-      <div className="mb-4">
-        Restante: R$ {((revenda ? totalManual : total) - (pagamento.recebido || 0)).toFixed(2)}
-      </div>
-
-      <div className="flex justify-between">
-        <button
-          className="bg-gray-400 text-white px-4 py-2 rounded"
-          onClick={() => setModalPagamento(false)}
-        >
-          Cancelar
-        </button>
-        <button
-          className="bg-green-600 text-white px-4 py-2 rounded"
-          onClick={confirmarVenda}
-        >
-          Confirmar Venda
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
     </div>
   );
 }

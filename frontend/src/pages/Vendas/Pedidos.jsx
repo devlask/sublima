@@ -83,7 +83,7 @@ const abrirVendaComModal = () => {
             <option value="expedição">🚚 Expedição</option>
             <option value="entregue">✅ Entregue</option>
           </select>
-          <button onClick={abrirVendaComModal}  className="bg-blue-500 text-white px-2 py-1 rounded">+ Nova Venda</button>
+          
         </div>
       </div>
 
@@ -159,15 +159,22 @@ const abrirVendaComModal = () => {
           R$ {(Number(item.subtotal) || (item.quantidade * item.valor_unitario)).toFixed(2)}
         </span>
       </div>
-      {item.obs && (
-  <div className="mt-1 pl-2 text-gray-600 italic text-[11px]">
-    📝 <strong>Obs:</strong> {item.obs}
-  </div>
-)}
     </div>
   ))}
-  <div className="text-right text-gray-500 mt-1">
-    Subtotal: R$ {parseFloat(venda.total).toFixed(2)}
+  <div className="flex justify-between items-start text-[12px] text-gray-600 mt-2">
+    {/* Observação da venda, canto esquerdo */}
+    <div className="italic">
+      {venda.obs && (
+        <>
+          📝 <strong>Obs:</strong> {venda.obs}
+        </>
+      )}
+    </div>
+
+    {/* Subtotal, canto direito */}
+    <div className="text-right text-gray-700 font-medium">
+      Subtotal: R$ {parseFloat(venda.total).toFixed(2)}
+    </div>
   </div>
 </div>
           </div>
