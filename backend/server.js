@@ -31,6 +31,11 @@ app.use('/api/caixas', caixaRoutes);
 app.use('/api/vendas', vendaRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/transacoes', transacaoRoutes);
+
+
+
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
 
@@ -62,10 +67,5 @@ app.get('/teste-pdf', async (req, res) => {
     res.status(500).send('Erro ao gerar PDF.');
   }
 });
-
-app.listen(3000, () => {
-  console.log('Servidor rodando em http://localhost:3000');
-});
-
 
 

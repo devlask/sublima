@@ -127,7 +127,7 @@ export default function Dashboard() {
           <ul className="text-sm space-y-1">
             {entregasProximas.map((entrega) => (
               <li key={entrega.id}>
-                {entrega.nomeCliente} - até <strong>{entrega.dataEntrega}</strong>
+                {entrega.cliente} - até <strong>{entrega.data_entrega}</strong>
               </li>
             ))}
           </ul>
@@ -138,7 +138,7 @@ export default function Dashboard() {
           <ul className="text-sm space-y-1">
             {pedidosAtrasados.map((pedido) => (
               <li key={pedido.id}>
-                {pedido.nomeCliente} - previsto para <strong>{pedido.dataEntrega}</strong>
+                {pedido.cliente} - previsto para <strong>{pedido.data_entrega}</strong>
               </li>
             ))}
           </ul>

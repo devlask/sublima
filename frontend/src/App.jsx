@@ -42,60 +42,65 @@ import RelComissoes from "./pages/Relatorio/RelComissoes";
 import RelEstoque from "./pages/Relatorio/RelEstoque";
 import LogsAcesso from "./pages/Relatorio/LogsAcesso";
 
-function App() {
+// ...
+import Login from "./pages/Login";
+import PrivateRoute from "./components/PrivateRoute";
+
+
+
+export default function App() {
   return (
     <Router>
-      <div className="min-h-screen w-full bg-gray-100 text-gray-900 flex">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-h-screen">
-          <Topbar />
-          <main className="flex-1 p-4 bg-white overflow-auto">
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+      <Routes>
+        <Route path="/login" element={<Login />} />
 
-              {/* Vendas */}
-              <Route path="/Vendas/pedidos" element={<Pedidos />} />
-              <Route path="/Vendas/produtos-simples" element={<ProdutosSimples />} />
-              <Route path="/pdv/SelecionarCaixa" element={<PDV />} />
-              <Route path="/pdv/venda" element={<PDVVendas />} />
-
-              {/* Financeiro */}
-              <Route path="/Financeiro/transacoes" element={<Transacoes />} />
-              <Route path="/Financeiro/nota-fiscal" element={<NotaFiscal />} />
-              <Route path="/Financeiro/caixas" element={<Caixas />} />
-
-              {/* Estoque */}
-              <Route path="/Estoque/compras" element={<Compras />} />
-              <Route path="/Estoque/estoque" element={<EstoquePage />} />
-
-              {/* Comunicação Visual */}
-              <Route path="/Cvisual/insumos" element={<Insumos />} />
-              <Route path="/Cvisual/maquinas" element={<Maquinas />} />
-              <Route path="/Cvisual/processos" element={<Processos />} />
-              <Route path="/Cvisual/materiais" element={<Materiais />} />
-              <Route path="/Cvisual/papeis" element={<Papeis />} />
-              <Route path="/Cvisual/produtos" element={<ProdutosCV />} />
-
-              {/* Cadastros */}
-              <Route path="/Cadastros/status-venda" element={<StatusVenda />} />
-              <Route path="/Cadastros/estagios-venda" element={<EstagiosVenda />} />
-              <Route path="/Cadastros/status-producao" element={<StatusProducao />} />
-              <Route path="/Cadastros/pessoas" element={<Pessoas />} />
-              <Route path="/Cadastros/cond-pagamento" element={<CondPagamento />} />
-
-              {/* Relatórios */}
-              <Route path="/relatorio/relatorio-financeiro" element={<RelFinanceiro />} />
-              <Route path="/relatorio/relatorio-vendas" element={<RelVendas />} />
-              <Route path="/relatorio/relatorio-comissoes" element={<RelComissoes />} />
-              <Route path="/relatorio/relatorio-estoque" element={<RelEstoque />} />
-              <Route path="/relatorio/logs-acesso" element={<LogsAcesso />} />
-            </Routes>
-          </main>
-        </div>
-      </div>
+        {/* Rota protegida */}
+        <Route
+          path="/*"
+          element={
+            <PrivateRoute>
+              <div className="min-h-screen w-full bg-gray-100 text-gray-900 flex">
+                <Sidebar />
+                <div className="flex-1 flex flex-col min-h-screen">
+                  <Topbar />
+                  <main className="flex-1 p-4 bg-white overflow-auto">
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/Vendas/pedidos" element={<Pedidos />} />
+                      <Route path="/Vendas/produtos-simples" element={<ProdutosSimples />} />
+                      <Route path="/pdv/SelecionarCaixa" element={<PDV />} />
+                      <Route path="/pdv/venda" element={<PDVVendas />} />
+                      <Route path="/Financeiro/transacoes" element={<Transacoes />} />
+                      <Route path="/Financeiro/nota-fiscal" element={<NotaFiscal />} />
+                      <Route path="/Financeiro/caixas" element={<Caixas />} />
+                      <Route path="/Estoque/compras" element={<Compras />} />
+                      <Route path="/Estoque/estoque" element={<EstoquePage />} />
+                      <Route path="/Cvisual/insumos" element={<Insumos />} />
+                      <Route path="/Cvisual/maquinas" element={<Maquinas />} />
+                      <Route path="/Cvisual/processos" element={<Processos />} />
+                      <Route path="/Cvisual/materiais" element={<Materiais />} />
+                      <Route path="/Cvisual/papeis" element={<Papeis />} />
+                      <Route path="/Cvisual/produtos" element={<ProdutosCV />} />
+                      <Route path="/Cadastros/status-venda" element={<StatusVenda />} />
+                      <Route path="/Cadastros/estagios-venda" element={<EstagiosVenda />} />
+                      <Route path="/Cadastros/status-producao" element={<StatusProducao />} />
+                      <Route path="/Cadastros/pessoas" element={<Pessoas />} />
+                      <Route path="/Cadastros/cond-pagamento" element={<CondPagamento />} />
+                      <Route path="/relatorio/relatorio-financeiro" element={<RelFinanceiro />} />
+                      <Route path="/relatorio/relatorio-vendas" element={<RelVendas />} />
+                      <Route path="/relatorio/relatorio-comissoes" element={<RelComissoes />} />
+                      <Route path="/relatorio/relatorio-estoque" element={<RelEstoque />} />
+                      <Route path="/relatorio/logs-acesso" element={<LogsAcesso />} />
+                    </Routes>
+                  </main>
+                </div>
+              </div>
+            </PrivateRoute>
+          }
+        />
+      </Routes>
     </Router>
   );
 }
 
-export default App;

@@ -9,6 +9,7 @@ const VendaItem = require('./vendaItem');
 const Estoque = require('./Estoque'); // ✅ Importado
 const Transacao = require('./transacao')(sequelize, Sequelize.DataTypes);
 const Caixa = require('./Caixa')
+const Usuario = require('./usuario')(sequelize, Sequelize.DataTypes);
 
 // Relacionamentos - Pedido
 Pedido.hasMany(ItemPedido, { foreignKey: 'pedidoId', as: 'itens' });
@@ -36,9 +37,12 @@ module.exports = {
   
   Pedido,
   Transacao,
+  Usuario,
   Caixa,
   ItemPedido,
   Venda,
   VendaItem,
   Estoque // ✅ Incluído no export
 };
+
+
